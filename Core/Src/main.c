@@ -48,7 +48,7 @@ UART_HandleTypeDef huart2;
 unsigned char __attribute__((section(".testSectionBufferRam"))) ram_buffer[128];
 unsigned char __attribute__((section(".testSectionBufferFlash"))) flash_buffer[] = {1,2,3,4,5,6,7,8,9};
 
-/* flash typedef function */
+/* My flash section elements  */
 #define FLASH_FUNC_TEST __attribute__((section(".mymemSection")))
 
 /* ram function put in flash but will be automatically put in RAM when the program inits  */
@@ -60,18 +60,29 @@ void __attribute__((section(".RamFunc"))) TurnOnLED(GPIO_PinState PinState)
 	}
 }
 
+typedef void (*funcPtr)(uint32_t delay_ticks);
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+void Blink(uint32_t delay_ticks);
+
+/* array of funcpointers to share mem between applicatif and boot mem area */
+static funcPtr functions[] =
+{
+		Blink
+};
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 void FLASH_FUNC_TEST Blink(uint32_t delay_ticks)
 {
 	GPIOD-> ODR ^= (1 << 15);
@@ -86,7 +97,6 @@ void FLASH_FUNC_TEST Blink(uint32_t delay_ticks)
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -115,6 +125,7 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
+
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -122,7 +133,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     TurnOnLED(1);
-	Blink(100);
+	(*functions[0])(100);
   }
   /* USER CODE END 3 */
 }
