@@ -1,0 +1,15 @@
+*.o
+*.d
+*.su
+*.cyclo
+*.list
+*.bin
+*.elf
+*.hex
+*.mxproject
+*.map
+*.launch
+*.cproject
+*.project
+.metadata/
+.settings/
