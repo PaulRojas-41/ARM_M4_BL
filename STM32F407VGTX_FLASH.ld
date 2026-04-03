@@ -47,8 +47,7 @@ MEMORY
 {
   CCMRAM    (xrw)    : ORIGIN = 0x10000000,   LENGTH = 64K
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 128K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 992K
-  my_Memsection (rx)	: ORIGIN = 0x8018000, LENGTH = 32K
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 32K
 }
 
 /* Sections */
@@ -61,16 +60,6 @@ SECTIONS
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
-  } >FLASH
-
-  .testBufferRam 0x20000100 (NOLOAD):
-  {
-  	KEEP(*(.testSectionBufferRam)) /* if we are not using this variable (a reference to it) compiler will not remove it */
-  } >RAM
-  
-  .testBufferFlash 0x8001000 :
-  {
-  	KEEP(*(.testSectionBufferFlash))
   } >FLASH
   
   /* The program code and other data into "FLASH" Rom type memory */
@@ -89,14 +78,6 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
-  
-  .mymemSection :
-  {
-  	. = ALIGN(4);
-  	__mymemSection_start__ = .;
-  	*(.mymemSection*)
-  	__mymemSection_end__ = .; 
-  } >my_Memsection
   
   /* Constant data into "FLASH" Rom type memory */
   .rodata :

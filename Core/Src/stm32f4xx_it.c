@@ -88,7 +88,10 @@ void HardFault_Handler(void)
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
-    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    /* USER CODE BEGIN W1_HardFault_IRQn 0: boot program can automatically jump here
+     * in case any issue with the jump to Appl */
+	  GPIOD->ODR ^= (1 << 12);
+	  HAL_Delay(100);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }

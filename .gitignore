@@ -4,6 +4,7 @@
 *.cyclo
 *.list
 *.bin
+*.png
 *.elf
 *.hex
 *.mxproject
