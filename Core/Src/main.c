@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#define APPL_FLASH_ADDR 0x8008000
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,9 +46,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-uint8_t tx_buffer[] = {"Bootloader executing...\n"};
-
-
+uint8_t tx_bl_buffer[] = {"Bootloader executing...\n"};
+uint8_t tx_bl_buffer2[] = {"Invalid application...\n"};
 
 /* USER CODE END PV */
 
@@ -97,12 +96,28 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
+
   /* USER CODE BEGIN 2 */
-  for(uint32_t i =0; i<sizeof(tx_buffer);i++)
+  for(uint32_t i =0; i<sizeof(tx_bl_buffer);i++)
   {
-  	USART2->DR = tx_buffer[i];
+  	USART2->DR = tx_bl_buffer[i];
   	while(!(USART2->SR & (1 << 6)));
   	HAL_Delay(10);
+  }
+
+  if(BL_is_appl_valid())
+  {
+	  for(uint32_t i =0; i<sizeof(tx_bl_buffer2);i++)
+	   {
+	    USART2->DR = tx_bl_buffer2[i];
+	    while(!(USART2->SR & (1 << 6)));
+	    HAL_Delay(10);
+	   }
+	  while(1)
+	  {
+		  GPIOD->ODR ^= (1 << 13);
+		  HAL_Delay(100);
+	  }
   }
 
   BL_jump_2_appl();
@@ -116,8 +131,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	GPIOD->ODR ^= (1 << 13);
-	HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
