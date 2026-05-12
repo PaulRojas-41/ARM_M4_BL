@@ -18,8 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "crc32.h"
 #include "bl_jump2_appl.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -41,13 +41,15 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
 uint8_t tx_bl_buffer[] = {"Bootloader executing...\n"};
-uint8_t tx_bl_buffer2[] = {"Invalid application...\n"};
+uint8_t tx_bl_buffer2[] = {"CRC FAILED......\n"};
+uint8_t tx_bl_buffer3[] = {"CRC Successful......\n"};
 
 /* USER CODE END PV */
 
@@ -56,6 +58,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART1_UART_Init(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -93,6 +96,7 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
@@ -105,23 +109,33 @@ int main(void)
   	HAL_Delay(10);
   }
 
-  if(BL_is_appl_valid())
+  uint8_t bl_crc_verification = BL_is_appl_valid();
+
+  if(bl_crc_verification == 4)
   {
 	  for(uint32_t i =0; i<sizeof(tx_bl_buffer2);i++)
 	   {
-	    USART2->DR = tx_bl_buffer2[i];
-	    while(!(USART2->SR & (1 << 6)));
-	    HAL_Delay(10);
+		  USART2->DR = tx_bl_buffer2[i];
+		  while(!(USART2->SR & (1 << 6)));
+		  HAL_Delay(10);
 	   }
 	  while(1)
 	  {
-		  GPIOD->ODR ^= (1 << 13);
+		  GPIOD->ODR ^= (1 << 14);
 		  HAL_Delay(100);
 	  }
   }
+  else
+  {
+	  for(uint32_t i =0; i<sizeof(tx_bl_buffer3);i++)
+	  {
+		  USART2->DR = tx_bl_buffer3[i];
+		  while(!(USART2->SR & (1 << 6)));
+		  HAL_Delay(10);
+	  }
 
-  BL_jump_2_appl();
-
+	  BL_jump_2_appl();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -260,10 +274,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 | GPIO_PIN_13| GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 | GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PD13 PD15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13| GPIO_PIN_15;
+  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_13|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
