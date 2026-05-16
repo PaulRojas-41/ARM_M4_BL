@@ -49,6 +49,8 @@ void BL_jump_2_appl(void)
 	app_entryPoint();
 }
 
+uint8_t BL_appl_valid_error_code;
+
 uint8_t BL_is_appl_valid(void)
 {
 	/*1. parameters that Bootloader verifies before jump or give control to the application
@@ -58,24 +60,31 @@ uint8_t BL_is_appl_valid(void)
 
 	/*2. Basic validation before jump to the appl: read the "Valid Key" store inside header's application flash slot */
 	if(appl_header->magic_number != APPL_VALID_KEY)
-		return 1;
+	{
+		BL_appl_valid_error_code |= 0x00000001;
+	}
 
 	/*3. Sanity check: verify if we are jumping to the correct reset handler address defined in the flash sector */
 	uint32_t reset_handler_addr = *(uint32_t *)(APPL_START_ADDR + 4);
 
 	if((reset_handler_addr & 0xFF00F000) != 0x800C000)
-		return 2;
+	{
+		BL_appl_valid_error_code |= 0x00000002;
+	}
 
 	/*4. Application Size verification */
 	if(appl_header->appl_size == 0 || appl_header->appl_size > APPL_MAX_SIZE)
-		return 3;
+	{
+		BL_appl_valid_error_code |= 0x00000003;
+	}
 
 	/*5. CRC32 value calculated verification */
 	uint32_t bl_crc32_result = bl_get_crc32((uint8_t *)APPL_START_ADDR, appl_header->appl_size);
 
 	if(appl_header->crc32 != bl_crc32_result)
-		return 4;
+	{
+		BL_appl_valid_error_code |= 0x00000004;
+	}
 
-
-	return 0;
+	return BL_appl_valid_error_code;
 }

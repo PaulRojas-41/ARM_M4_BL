@@ -20,6 +20,8 @@
 #include "main.h"
 #include "crc32.h"
 #include "bl_jump2_appl.h"
+#include <stdio.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -48,8 +50,11 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 uint8_t tx_bl_buffer[] = {"Bootloader executing...\n"};
-uint8_t tx_bl_buffer2[] = {"CRC FAILED......\n"};
-uint8_t tx_bl_buffer3[] = {"CRC Successful......\n"};
+uint8_t tx_bl_buffer1[] = {"Application Key Failed...\n"};
+uint8_t tx_bl_buffer2[] = {"Reset Handler address wrong...\n"};
+uint8_t tx_bl_buffer3[] = {"Application size problem...\n"};
+uint8_t tx_bl_buffer4[] = {"CRC32 problem......\n"};
+uint8_t tx_bl_buffer5[] = {"Application validation successful......\n"};
 
 /* USER CODE END PV */
 
@@ -109,33 +114,57 @@ int main(void)
   	HAL_Delay(10);
   }
 
-  uint8_t bl_crc_verification = BL_is_appl_valid();
+  uint8_t bl_appl_verification = BL_is_appl_valid();
 
-  if(bl_crc_verification == 4)
+  if(bl_appl_verification == 0x01)
   {
-	  for(uint32_t i =0; i<sizeof(tx_bl_buffer2);i++)
-	   {
-		  USART2->DR = tx_bl_buffer2[i];
-		  while(!(USART2->SR & (1 << 6)));
-		  HAL_Delay(10);
-	   }
-	  while(1)
+	  for(uint32_t i =0; i<sizeof(tx_bl_buffer1);i++)
 	  {
-		  GPIOD->ODR ^= (1 << 14);
-		  HAL_Delay(100);
+	  	USART2->DR = tx_bl_buffer1[i];
+	  	while(!(USART2->SR & (1 << 6)));
+	  	HAL_Delay(10);
 	  }
   }
-  else
+  else if((bl_appl_verification & (1 << 1)))
   {
-	  for(uint32_t i =0; i<sizeof(tx_bl_buffer3);i++)
+	  for(uint32_t i =0; i<sizeof(tx_bl_buffer2);i++)
 	  {
-		  USART2->DR = tx_bl_buffer3[i];
-		  while(!(USART2->SR & (1 << 6)));
-		  HAL_Delay(10);
+	  	 USART2->DR = tx_bl_buffer2[i];
+	  	 while(!(USART2->SR & (1 << 6)));
+	  	 HAL_Delay(10);
+	  }
+  }
+  else if((bl_appl_verification & (1 << 2)))
+  {
+  	for(uint32_t i =0; i<sizeof(tx_bl_buffer3);i++)
+  	{
+  	  USART2->DR = tx_bl_buffer3[i];
+  	  while(!(USART2->SR & (1 << 6)));
+  	  HAL_Delay(10);
+  	}
+  }
+  else if((bl_appl_verification & (1 << 3)))
+  {
+  	for(uint32_t i =0; i<sizeof(tx_bl_buffer4);i++)
+  	{
+  	  USART2->DR = tx_bl_buffer4[i];
+  	  while(!(USART2->SR & (1 << 6)));
+  	  HAL_Delay(10);
+  	}
+  }
+  else if(!bl_appl_verification)
+  {
+	  for(uint32_t i =0; i<sizeof(tx_bl_buffer5);i++)
+	  {
+	    USART2->DR = tx_bl_buffer5[i];
+	    while(!(USART2->SR & (1 << 6)));
+	    HAL_Delay(10);
 	  }
 
 	  BL_jump_2_appl();
   }
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
